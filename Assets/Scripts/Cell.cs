@@ -7,6 +7,8 @@ public class Cell
     public static GameObject prefab;
     public GameObject spawnedCell;
     public int highestBranch;
+    
+    //I decided to use a constructor here to easily assign the cell it's number and spawn in the corresponding prefab in one go.
     public Cell(Vector3 position, int cellNumber)
     {
         spawnedCell = GameObject.Instantiate(prefab, position, Quaternion.identity);
