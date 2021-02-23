@@ -17,6 +17,8 @@ public class Cell
     {
         get
         {
+            //Because the number of active edges can change every frame, I made the decision not to cache an edges array. 
+            //And instead get the edges whenever it is called.
             GameObject[] edges = new GameObject[spawnedCell.transform.childCount];
             for (int i = 0; i < spawnedCell.transform.childCount; i++)
             {
@@ -27,12 +29,14 @@ public class Cell
         }
     }
 
+    //Destroys one of the walls of the cell.
     public void RemoveEdge(int edgeNumber)
     {
         int childIndex = edgeNumber - 1;
         GameObject.Destroy(Edges[childIndex]);
     }
 
+    //Returns one of the walls of the cell
     public GameObject GetEdge(int edgeNumber)
     {
         int index = edgeNumber - 1;
