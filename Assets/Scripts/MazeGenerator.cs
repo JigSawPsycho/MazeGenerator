@@ -14,12 +14,16 @@ public class MazeGenerator : MonoBehaviour
 
     private void Start()
     {
+        //Assign the applied prefab to the static cellPrefab field for Cells.
         Cell.prefab = _cellPrefab;
 
+        //Generate a grid and remove overlapping walls.
         Cells = GenerateGrid();
 
+        //Fill the neighbourCells dictionary
         PopulateSharedEdgeDictionary(Cells, neighbourCells);
-
+        
+        //Connect random cells until all cells can be reached from the entrance and there is one exit.
         StartCoroutine(ConnectRandomCells(neighbourCells));
     }
 
@@ -77,8 +81,6 @@ public class MazeGenerator : MonoBehaviour
             int aboveCellIndex = i;
             if (i % mazeZSize != 0)
             {
-                //Debug to see if my math is right and thinking path lol.
-                //cellList[i - 1].spawnedCell.transform.position += Vector3.up * 5;
                 Cell[] cellPair = new Cell[2]
                 {
                     cellList[currentCellIndex],
@@ -91,9 +93,6 @@ public class MazeGenerator : MonoBehaviour
 
             if (i < mazeZSize * mazeXSize - mazeZSize)
             {
-                //Debug to see if my math is right and thinking path lol.
-                //cellList[i - 1].spawnedCell.transform.position += Vector3.up * 5;
-
                 Cell[] cellPair = new Cell[2]
                 {
                     cellList[currentCellIndex],
@@ -104,15 +103,6 @@ public class MazeGenerator : MonoBehaviour
                 sharedEdges.Add(cellList[currentCellIndex].GetEdge(3));
             }
         }
-
-        //Debugging again to check if the edges were getting shared and indexed properly. They are at the moment.
-        /*
-        for(int i = 0; i < dictionaryToPopulate[sharedEdges[0]].Length; i++)
-        {
-            dictionaryToPopulate[sharedEdges[0]][i].spawnedCell.transform.position += Vector3.down * 5;
-            sharedEdges[0].transform.position += Vector3.up * 10;
-        }
-        */
     }
 
     IEnumerator ConnectRandomCells(Dictionary<GameObject, Cell[]> connectingEdges)
@@ -121,29 +111,40 @@ public class MazeGenerator : MonoBehaviour
         int alphaBranch = 0;
         while (connectingEdges.Count > 0)
         {
+            //Used to visually represent the maze being opened up. I just think it looks nice.
             yield return new WaitForEndOfFrame();
 
+            //Grab the index of a random edge connecting two cells.
             int index = UnityEngine.Random.Range(0, connectingEdges.Count);
 
+            //Get the edge gameobject.
             GameObject edge = sharedEdges[index];
 
+            //Get the two cells that are connected via the edge.
             Cell[] cellPair = connectingEdges[edge];
 
+            //If there are still paths that can't be reached from the entrance but both of these cells are connected to the entrance,
+            //remove them from the dictionary and continue on to the next connecting edge.
             if (cellPair[0].highestBranch == cellPair[1].highestBranch && uniqueids > 1)
             {
                 connectingEdges.Remove(edge);
                 sharedEdges.Remove(edge);
                 continue;
-            } else if (uniqueids == 1)
+            } else if (uniqueids == 1) //If all routes are connected, break.
             {
                 break;
             }
 
+            //Operate based off the lowest id of the two adjacent cells.
             if (cellPair[0].highestBranch < cellPair[1].highestBranch)
             {
+                //Connect the cells by removing the connecting edge.
                 edge.SetActive(false);
                 connectingEdges.Remove(edge);
                 sharedEdges.Remove(edge);
+                
+                //Set all cells with the same id as the higher id cell, to the lower id cell.
+                //This ensures any cell connected to the higher id cell will now have the id of the lower cell.
                 SetCellsFromidToid(cellPair[1].highestBranch, cellPair[0].highestBranch);
             } else
             {
